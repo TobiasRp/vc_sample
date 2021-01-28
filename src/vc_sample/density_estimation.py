@@ -2,30 +2,49 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 
-class EpanechnikovKernel:
+def epanechnikov(x: float):
+    if 0 <= x < 1.0:
+        return 0.75 * (1 - x ** 2)
+    else:
+        return 0.0
+
+
+def l2norm(vec):
+    return np.dot(vec, vec)
+
+
+class Kernel:
     """
     The Epanechnikov
     """
 
-    def __call__(self, x: int):
+    def __init__(self, kernel_func, norm=l2norm, scale: float = 1.0):
+        """
+        Create a new kernel with the given scaling factor.
+        Args:
+            kernel_func: function
+            Kernel function with a support of 1
+
+            scale: float
+            Global scaling factor
+        """
+        self.kernel = kernel_func
+        self.norm = norm
+        self.scale = scale
+
+    def __call__(self, vec: int):
         """
         Evaluates kernel
         """
-        if 0 <= x < self.support():
-            return 0.75 * (1 - x ** 2)
-        else:
-            return 0.0
+        x = self.norm(vec / self.scale)
+        return self.kernel(x)
 
-    @staticmethod
-    def support():
-        """
-        The kernel has a support of [0,1).
-        """
-        return 1.0
+    def support(self):
+        return self.scale
 
 
 class KernelDensityEstimator:
-    def __init__(self, points, kernel=EpanechnikovKernel()):
+    def __init__(self, points, kernel=Kernel(kernel_func=epanechnikov)):
         self.kernel = kernel
         self.points = points
         self.tree = cKDTree(points)
@@ -49,7 +68,7 @@ class KernelDensityEstimator:
                 p_idx = self.points[p_indices[n]]
 
                 if mask is None or mask[i]:
-                    rho[i] += self.kernel(np.dot(p - p_idx, p - p_idx))
+                    rho[i] += self.kernel(p - p_idx)
 
         return rho
 
