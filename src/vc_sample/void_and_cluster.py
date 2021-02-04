@@ -12,21 +12,25 @@ class VoidAndCluster:
         self.points = points
 
         self.is_sample = np.zeros(self.num_points, dtype=np.bool)
-        self.rank = np.empty(self.num_points, dtype=np.int)
-        self.rank[:] = np.inf
 
-        self.estimate_density = density_estimator
+        rank_type = np.int32
+        self.rank = np.empty(self.num_points, dtype=rank_type)
+
+        self.INF_RANK = np.iinfo(rank_type).max
+        self.rank.fill(self.INF_RANK)
+
+        self.density_estimator = density_estimator
         self.inv_rho_p = 1.0 / density_estimator.estimate()
 
-    def _initial_sampling(self):
+    def _initial_sampling(self, num_samples):
         """
         Performs initial (simple) random sampling.
         """
         indices = np.random.choice(
-            range(0, self.is_sample.shape[0]), size=self.num_initial_samples
+            range(0, self.is_sample.shape[0]), size=num_samples, replace=False
         )
         self.is_sample[indices] = True
-        self.rank[indices] = range(0, self.num_initial_samples)
+        self.rank[indices] = range(0, num_samples)
 
     def _swap_rank(self, largest_void, tightest_cluster):
         """
@@ -36,23 +40,47 @@ class VoidAndCluster:
         self.rank[largest_void] = self.rank[tightest_cluster]
         self.rank[tightest_cluster] = r_lv
 
-    def _add_largest_void(self, rho_s: np.array) -> int:
-        # TODO: Find largest void
-        # largest_void = np.argmin(rho)
+    def _mask_out_samples(self, rho: np.array, mask_value) -> np.array:
+        return np.array(
+            [
+                rho[i] if not self.is_sample[i] else mask_value
+                for i in range(0, len(rho))
+            ]
+        )
 
-        # TODO: Update sample density rho_s
-        # TODO: Set self.is_sample
-        # TODO: Return index
-        return 0
+    def _mask_out_points(self, rho: np.array, mask_value) -> np.array:
+        return np.array(
+            [rho[i] if self.is_sample[i] else mask_value for i in range(0, len(rho))]
+        )
+
+    def _add_largest_void(self, rho_s: np.array) -> int:
+        """
+        Find and add largest void that is NOT a sample
+        """
+        masked_rho_s = self._mask_out_samples(rho_s, np.inf)
+
+        largest_void_idx = np.argmin(masked_rho_s)
+
+        self.density_estimator.add(rho_s, largest_void_idx)
+
+        assert not self.is_sample[largest_void_idx]
+        self.is_sample[largest_void_idx] = True
+
+        return largest_void_idx
 
     def _remove_tightest_cluster(self, rho_s: np.array) -> int:
-        # TODO: tightest_cluster
-        # tightest_cluster = np.argmax(rho)
+        """
+        Find and remove tightest cluster that IS a sample
+        """
+        masked_rho_s = self._mask_out_points(rho_s, -np.inf)
+        tightest_clust_idx = np.argmax(masked_rho_s)
 
-        # TODO: Update sample density rho_s
-        # TODO: Set self.is_sample
-        # TODO: Return index
-        return 0
+        self.density_estimator.sub(rho_s, tightest_clust_idx)
+
+        assert self.is_sample[tightest_clust_idx]
+        self.is_sample[tightest_clust_idx] = False
+
+        return tightest_clust_idx
 
     def _initial_optimization(self, rho_s):
         """
@@ -78,30 +106,34 @@ class VoidAndCluster:
         """
         assert num > 0
 
-        for i in range(self.num_initial_samples, num):
+        for i in range(num):
             largest_void = self._add_largest_void(rho_s)
-            self.rank[largest_void] = i
+
+            assert self.rank[largest_void] == self.INF_RANK
+
+            self.rank[largest_void] = self.num_initial_samples + i
 
     def sample(self, size: int):
         """
         Returns ``size`` optimally stratified samples.
-        Args:
-            size:
-
-        Returns:
-
         """
-        self._initial_sampling()
+        num_initial_samples = (
+            self.num_initial_samples if self.num_initial_samples < size else size
+        )
+        self._initial_sampling(num_initial_samples)
 
-        rho_s = self.estimate_density.estimate(self.is_sample)
+        rho_s = self.density_estimator.estimate(self.is_sample)
 
         self._initial_optimization(rho_s)
+        assert sum(self.is_sample) == num_initial_samples
 
         samples_left = size - self.num_initial_samples
         if samples_left > 0:
             self._fill_voids(rho_s, samples_left)
 
-        return self.points[self.is_sample][:size]
+        assert sum(self.is_sample) == size
+
+        return self.points[self.get_ordering(size)]
 
     def get_ordering(self, size: int):
         """
@@ -111,4 +143,4 @@ class VoidAndCluster:
         Returns:
             Indices of the first ``size`` samples.
         """
-        return self.rank[:size]
+        return self.rank[self.rank != self.INF_RANK][:size]
