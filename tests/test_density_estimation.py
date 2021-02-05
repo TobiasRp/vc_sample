@@ -42,3 +42,15 @@ def test_kde_border_case():
     rho = kde.estimate()
     for i, _ in enumerate(xs):
         assert rho[i] == epanechnikov(0.0)
+
+
+def test_kde2d():
+    x_ = np.linspace(0.0, 1.0, 10)
+    y_ = np.linspace(0.0, 1.0, 10)
+    x, y = np.meshgrid(x_, y_)
+    points = np.stack([x.flatten(), y.flatten()]).T
+
+    kde = KernelDensityEstimator(points, Kernel(epanechnikov, scale=0.1))
+    rho = kde.estimate().reshape(10, 10)
+
+    assert np.abs(rho[6, 6] - rho[4, 4]) < 1e-3
