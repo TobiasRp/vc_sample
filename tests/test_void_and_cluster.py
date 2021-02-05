@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 
-from vc_sample.density_estimation import KernelDensityEstimator
+from vc_sample.density_estimation import Kernel, KernelDensityEstimator, epanechnikov
 from vc_sample.void_and_cluster import VoidAndCluster
 
 
@@ -12,52 +12,14 @@ def test_sample_size(sample_size):
     ys = np.random.uniform(-1.0, 1.0, 100)
     points = np.stack([xs, ys]).T
 
-    density_estimator = KernelDensityEstimator(points)
+    density_estimator = KernelDensityEstimator(points, Kernel(epanechnikov, scale=1.0))
     vc = VoidAndCluster(points, density_estimator, num_initial_samples=20)
 
     samples = vc.sample(size=sample_size)
     ordering = vc.ordering(size=sample_size)
 
     for o in ordering:
-        assert o < sample_size
+        assert o < points.shape[0]
 
     assert len(samples) == len(ordering) == sample_size
     assert np.unique(samples, axis=0).shape[0] == sample_size
-
-
-def test_stratification1d():
-    ps = np.linspace(0.0, 10.0, 100).reshape(-1, 1)
-
-    density_estimator = KernelDensityEstimator(ps)
-    vc = VoidAndCluster(ps, density_estimator, num_initial_samples=20)
-
-    sample_size = 50
-    nbins = 10
-
-    samples = vc.sample(size=sample_size)
-
-    bins, _ = np.histogram(samples, bins=nbins)
-    for b in bins:
-        assert (sample_size / nbins) - 1 < b < (sample_size / nbins) + 1
-
-
-# def test_stratification2d():
-#     x_ = np.linspace(0.0, 1.0, 20)
-#     y_ = np.linspace(0.0, 1.0, 20)
-#
-#     x, y = np.meshgrid(x_, y_, indexing="ij")
-#     points = np.stack([x.flatten(), y.flatten()]).T
-#
-#     density_estimator = KernelDensityEstimator(points)
-#     vc = VoidAndCluster(points, density_estimator, num_initial_samples=10)
-#
-#     sample_size = 50
-# nbins = 5
-#
-# samples = vc.sample(size=sample_size)
-
-# TODO: This breaks!
-
-# bins, _, _ = np.histogram2d(samples[:,0], samples[:,1], bins=nbins)
-# for b in bins.flatten():
-#     assert (sample_size / nbins**2) - 1 < b < (sample_size / nbins**2) + 1

@@ -9,8 +9,16 @@ def epanechnikov(x: float):
         return 0.0
 
 
+def gaussian(x: float):
+    return 1.0 / (2.0 * np.pi) * np.exp(-0.5 * x ** 2)
+
+
 def l2norm(vec):
     return np.dot(vec, vec)
+
+
+def kernel_scale_factor(dimensionality: float, num_points: int, num_samples: int):
+    return (num_points / float(num_samples)) ** (1.0 / dimensionality)
 
 
 class Kernel:
@@ -18,7 +26,7 @@ class Kernel:
     The Epanechnikov
     """
 
-    def __init__(self, kernel_func, norm=l2norm, scale: float = 1.0):
+    def __init__(self, kernel_func, scale: float, norm=l2norm):
         """
         Create a new kernel with the given scaling factor.
         Args:
@@ -44,35 +52,21 @@ class Kernel:
 
 
 class KernelDensityEstimator:
-    def __init__(self, points, kernel=Kernel(kernel_func=epanechnikov)):
+    def __init__(self, points: np.array, kernel):
         self.kernel = kernel
         self.points = points
         self.tree = cKDTree(points)
 
-    def estimate(self, mask=None):
+    def estimate(self, mask: np.array = None):
         rho = np.zeros(self.points.shape[0], dtype=np.float)
 
-        p_indices = [
-            idx for idx in range(self.points.shape[0]) if mask is None or mask[idx]
-        ]
-        if len(p_indices) == 0:
-            return rho
-
-        neighbor_lists = self.tree.query_ball_point(
-            [self.points[idx] for idx in p_indices], self.kernel.support(), workers=-1
-        )
-
-        for n, neighbors in enumerate(neighbor_lists):
-            for i in neighbors:
-                p = self.points[i]
-                p_idx = self.points[p_indices[n]]
-
-                if mask is None or mask[i]:
-                    rho[i] += self.kernel(p - p_idx)
+        for i in range(self.points.shape[0]):
+            if mask is None or mask[i]:
+                self.add(rho, i)
 
         return rho
 
-    def add(self, rho_s: np.array, idx, mask=None):
+    def add(self, rho_s: np.array, idx: int, mask: np.array = None):
         p_idx = self.points[idx]
 
         neighbors = self.tree.query_ball_point(p_idx, self.kernel.support(), workers=-1)
@@ -81,7 +75,7 @@ class KernelDensityEstimator:
             if mask is None or mask[i]:
                 rho_s[i] += self.kernel(np.dot(p - p_idx, p - p_idx))
 
-    def sub(self, rho_s: np.array, idx, mask=None):
+    def sub(self, rho_s: np.array, idx: int, mask: np.array = None):
         p_idx = self.points[idx]
 
         neighbors = self.tree.query_ball_point(p_idx, self.kernel.support(), workers=-1)

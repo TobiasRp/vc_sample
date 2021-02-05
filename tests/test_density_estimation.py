@@ -1,3 +1,5 @@
+import pytest
+
 import numpy as np
 
 from vc_sample.density_estimation import Kernel, KernelDensityEstimator, epanechnikov
@@ -17,11 +19,29 @@ def test_kernel():
     assert k(1.5) == epanechnikov(0.5 ** 2)
 
 
+@pytest.fixture
+def kde1d():
+    xs = np.linspace(-1.0, -1.0, 100)
+    points = xs.reshape(-1, 1)
+    return KernelDensityEstimator(points, kernel=Kernel(epanechnikov, scale=0.5))
+
+
+def test_add_sub(kde1d):
+    mask = np.zeros(kde1d.points.shape[0], dtype=np.bool)
+    mask[10] = True
+    rho1 = kde1d.estimate(mask=mask)
+
+    rho2 = np.zeros(kde1d.points.shape[0], dtype=np.float)
+    kde1d.add(rho2, 10)
+
+    assert np.array_equal(rho1, rho2)
+
+
 def test_kde1d():
     xs = np.linspace(-1.0, -1.0, 100)
     points = xs.reshape(-1, 1)
 
-    kde = KernelDensityEstimator(points)
+    kde = KernelDensityEstimator(points, Kernel(epanechnikov, scale=1.0))
 
     rho = kde.estimate(mask=np.zeros_like(points, dtype=np.bool))
     assert not rho.any()
@@ -38,7 +58,7 @@ def test_kde1d():
 def test_kde_border_case():
     xs = np.array([-100, -10, 0, 10, 100], dtype=np.float)
     points = xs.reshape(-1, 1)
-    kde = KernelDensityEstimator(points)
+    kde = KernelDensityEstimator(points, Kernel(epanechnikov, scale=1.0))
     rho = kde.estimate()
     for i, _ in enumerate(xs):
         assert rho[i] == epanechnikov(0.0)

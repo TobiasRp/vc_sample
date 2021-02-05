@@ -52,12 +52,20 @@ class SampleDensity:
     def num_samples(self) -> int:
         return np.sum(self.is_sample)
 
+    @property
+    def sample_indices(self) -> np.array:
+        return np.where(self.is_sample)
+
 
 class VoidAndCluster:
     """Performs void-and-cluster sampling to find optimally stratified samples."""
 
     def __init__(
-        self, points: np.array, density_estimator, num_initial_samples: int = 100
+        self,
+        points: np.array,
+        density_estimator,
+        num_initial_samples: int = 100,
+        log_fn=None,
     ):
         self.num_initial_samples = num_initial_samples
         self.num_points = points.shape[0]
@@ -73,6 +81,8 @@ class VoidAndCluster:
 
         self.density_estimator = density_estimator
         self.inv_rho_p = 1.0 / density_estimator.estimate()
+
+        self.log_fn = log_fn
 
     def _initial_sampling(self, num_samples) -> SampleDensity:
         """
@@ -100,6 +110,15 @@ class VoidAndCluster:
             largest_void = sample_density.add_largest_void()
             tightest_cluster = sample_density.remove_tightest_cluster()
 
+            if self.log_fn:
+                self.log_fn(
+                    "initial optimization",
+                    sample_density.rho,
+                    sample_density.sample_indices,
+                    largest_void,
+                    tightest_cluster,
+                )
+
             self._swap_rank(largest_void, tightest_cluster)
 
             if largest_void == tightest_cluster:
@@ -118,6 +137,15 @@ class VoidAndCluster:
             assert self.rank[largest_void] == self.INF_RANK
             self.rank[largest_void] = self.num_initial_samples + i
 
+            if self.log_fn:
+                self.log_fn(
+                    "void filling",
+                    sample_density.rho,
+                    sample_density.sample_indices,
+                    largest_void,
+                    -1,
+                )
+
     def sample(self, size: int):
         """
         Returns ``size`` optimally stratified samples.
@@ -133,7 +161,8 @@ class VoidAndCluster:
         self._fill_voids(sample_density, size - self.num_initial_samples)
         assert sample_density.num_samples() == size
 
-        return self.points[self.ordering(size)]
+        ord = self.ordering(size)
+        return self.points[ord]
 
     def ordering(self, size: int):
         """
@@ -143,4 +172,4 @@ class VoidAndCluster:
         Returns:
             Indices of the first ``size`` samples.
         """
-        return self.rank[self.rank != self.INF_RANK][:size]
+        return np.argsort(self.rank)[:size]
