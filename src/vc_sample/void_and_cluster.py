@@ -112,7 +112,7 @@ class VoidAndCluster:
 
             if self.log_fn:
                 self.log_fn(
-                    "initial optimization",
+                    "Initial optimization",
                     sample_density.rho,
                     sample_density.sample_indices,
                     largest_void,
@@ -139,7 +139,7 @@ class VoidAndCluster:
 
             if self.log_fn:
                 self.log_fn(
-                    "void filling",
+                    "Void filling",
                     sample_density.rho,
                     sample_density.sample_indices,
                     largest_void,
