@@ -22,27 +22,26 @@ def kernel_scale_factor(dimensionality: float, num_points: int, num_samples: int
 
 
 class Kernel:
-    """
-    The Epanechnikov
-    """
+    """A kernel function assigns a weight based on distance between two points."""
 
     def __init__(self, kernel_func, scale: float, norm=l2norm):
-        """
-        Create a new kernel with the given scaling factor.
-        Args:
-            kernel_func: function
-            Kernel function with a support of 1
+        """Create a new kernel with the given scaling factor.
 
-            scale: float
-            Global scaling factor
+        Args:
+            kernel_func: Kernel function with a support of 1
+            scale: Global scaling factor
         """
         self.kernel = kernel_func
         self.norm = norm
         self.scale = scale
 
     def __call__(self, vec: int):
-        """
-        Evaluates kernel
+        """Evaluates the kernel.
+
+        Args:
+            vec: Distance vector for which to compute a weight.
+        Returns:
+            Scalar weight
         """
         x = self.norm(vec / self.scale)
         return self.kernel(x)
@@ -52,12 +51,21 @@ class Kernel:
 
 
 class KernelDensityEstimator:
+    """Estimates density using kernel functions."""
+
     def __init__(self, points: np.array, kernel):
         self.kernel = kernel
         self.points = points
         self.tree = cKDTree(points)
 
     def estimate(self, mask: np.array = None):
+        """Estimates the density for all points.
+
+        Args:
+            mask: Optional parameter to mask points to exclude during the density estimation.
+        Returns:
+            Array of densities
+        """
         rho = np.zeros(self.points.shape[0], dtype=np.float)
 
         for i in range(self.points.shape[0]):
@@ -67,6 +75,16 @@ class KernelDensityEstimator:
         return rho
 
     def add(self, rho_s: np.array, idx: int, mask: np.array = None):
+        """ For given densities, adds the density of a point.
+
+        Args:
+            rho_s: Existing densities to update.
+            idx: Index of the point.
+            mask: Optional mask to exclude points during the density estimation.
+
+        Returns:
+            None
+        """
         p_idx = self.points[idx]
 
         neighbors = self.tree.query_ball_point(p_idx, self.kernel.support(), workers=-1)
@@ -76,6 +94,16 @@ class KernelDensityEstimator:
                 rho_s[i] += self.kernel(np.dot(p - p_idx, p - p_idx))
 
     def sub(self, rho_s: np.array, idx: int, mask: np.array = None):
+        """ For given densities, subtracts the density of a point.
+
+        Args:
+            rho_s: Existing densities to update.
+            idx: Index of the point.
+            mask: Optional mask to exclude points during the density estimation.
+
+        Returns:
+            None
+        """
         p_idx = self.points[idx]
 
         neighbors = self.tree.query_ball_point(p_idx, self.kernel.support(), workers=-1)

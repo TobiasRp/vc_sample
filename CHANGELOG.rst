@@ -1,10 +1,11 @@
-=========
+===============
 Changelog
-=========
+===============
 
-Version 0.1
-===========
+Version 0.0.1
+===============
 
-- Feature A added
-- FIX: nasty bug #1729 fixed
-- add your changes here!
+Implementation of basic void-and-cluster algorithm:
+
+- Simple, unoptimized implementation using NumPy
+- Only kernel density estimation is supported (Specifying the kernel size is quite cumbersome)

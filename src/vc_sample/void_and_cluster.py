@@ -1,19 +1,24 @@
 import numpy as np
 
 
-def mask_rho_samples(rho, is_sample):
+def _mask_rho_samples(rho, is_sample):
     return rho if is_sample else -np.inf
 
 
-def mask_rho_points(rho, is_sample):
+def _mask_rho_points(rho, is_sample):
     return rho if not is_sample else np.inf
 
 
-mask_rho_samples_func = np.vectorize(mask_rho_samples)
-mask_rho_points_func = np.vectorize(mask_rho_points)
+mask_rho_samples_func = np.vectorize(_mask_rho_samples)
+mask_rho_points_func = np.vectorize(_mask_rho_points)
 
 
-class SampleDensity:
+class _SampleDensity:
+    """The sample density that is constantly updated in the void and cluster algorithm.
+
+    This class is used internally by ``VoidAndCluster``.
+    """
+
     def __init__(
         self, num_points: int, initial_sample_indices: np.array, density_estimator
     ):
@@ -24,9 +29,7 @@ class SampleDensity:
         self.rho = self.density_estimator.estimate(self.is_sample)
 
     def add_largest_void(self) -> int:
-        """
-        Find and add largest void that is NOT a sample
-        """
+        """Find and add largest void that is NOT a sample"""
         largest_void_idx = np.argmin(mask_rho_points_func(self.rho, self.is_sample))
 
         self.density_estimator.add(self.rho, largest_void_idx)
@@ -37,9 +40,7 @@ class SampleDensity:
         return largest_void_idx
 
     def remove_tightest_cluster(self) -> int:
-        """
-        Find and remove tightest cluster that IS a sample
-        """
+        """Find and remove tightest cluster that IS a sample"""
         tightest_clust_idx = np.argmax(mask_rho_samples_func(self.rho, self.is_sample))
 
         self.density_estimator.sub(self.rho, tightest_clust_idx)
@@ -84,28 +85,22 @@ class VoidAndCluster:
 
         self.log_fn = log_fn
 
-    def _initial_sampling(self, num_samples) -> SampleDensity:
-        """
-        Performs initial (simple) random sampling.
-        """
+    def _initial_sampling(self, num_samples) -> _SampleDensity:
+        """Performs initial (simple) random sampling."""
         indices = np.random.choice(
             range(0, self.is_sample.shape[0]), size=num_samples, replace=False
         )
         self.rank[indices] = range(0, num_samples)
-        return SampleDensity(self.num_points, indices, self.density_estimator)
+        return _SampleDensity(self.num_points, indices, self.density_estimator)
 
     def _swap_rank(self, largest_void, tightest_cluster):
-        """
-        Swaps the ranks of two indices.
-        """
+        """Swaps the ranks of two indices."""
         r_lv = self.rank[largest_void]
         self.rank[largest_void] = self.rank[tightest_cluster]
         self.rank[tightest_cluster] = r_lv
 
-    def _initial_optimization(self, sample_density: SampleDensity):
-        """
-        Optimizes the samples by finding and exchanging the largest void and tightest cluster
-        """
+    def _initial_optimization(self, sample_density: _SampleDensity):
+        """Optimizes the samples by finding and exchanging the largest void and tightest cluster"""
         while True:
             largest_void = sample_density.add_largest_void()
             tightest_cluster = sample_density.remove_tightest_cluster()
@@ -124,9 +119,9 @@ class VoidAndCluster:
             if largest_void == tightest_cluster:
                 break
 
-    def _fill_voids(self, sample_density: SampleDensity, num: int):
-        """
-        Adds ``num`` samples by iteratively finding and adding the largest void.
+    def _fill_voids(self, sample_density: _SampleDensity, num: int):
+        """Adds ``num`` samples by iteratively finding and adding the largest void.
+
         Args:
             sample_density: Density of samples to find the largest void(s)
             num: Number of samples to add
@@ -147,8 +142,12 @@ class VoidAndCluster:
                 )
 
     def sample(self, size: int):
-        """
-        Returns ``size`` optimally stratified samples.
+        """Returns ``size`` optimally stratified samples.
+
+        Args:
+            size: Number of points to sample.
+        Returns:
+            Sampled points
         """
         num_initial_samples = (
             self.num_initial_samples if self.num_initial_samples < size else size
@@ -167,6 +166,7 @@ class VoidAndCluster:
     def ordering(self, size: int):
         """
         After sampling, this returns a prefix of ``size`` sample indices.
+
         Args:
             size: Size of the prefix. Cannot be greater than what has previously been sampled.
         Returns:
