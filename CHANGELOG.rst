@@ -2,7 +2,7 @@
 Changelog
 ===============
 
-Version 0.0.1
+Version 0.01
 ===============
 
 Implementation of basic void-and-cluster algorithm:
