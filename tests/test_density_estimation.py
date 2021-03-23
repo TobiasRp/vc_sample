@@ -27,11 +27,11 @@ def kde1d():
 
 
 def test_add_sub(kde1d):
-    mask = np.zeros(kde1d.points.shape[0], dtype=np.bool)
+    mask = np.zeros(kde1d.points.shape[0], dtype=bool)
     mask[10] = True
     rho1 = kde1d.estimate(mask=mask)
 
-    rho2 = np.zeros(kde1d.points.shape[0], dtype=np.float)
+    rho2 = np.zeros(kde1d.points.shape[0], dtype=float)
     kde1d.add(rho2, 10)
 
     assert np.array_equal(rho1, rho2)
@@ -43,7 +43,7 @@ def test_kde1d():
 
     kde = KernelDensityEstimator(points, Kernel(epanechnikov, scale=1.0))
 
-    rho = kde.estimate(mask=np.zeros_like(points, dtype=np.bool))
+    rho = kde.estimate(mask=np.zeros_like(points, dtype=bool))
     assert not rho.any()
 
     rho = kde.estimate()
@@ -56,7 +56,7 @@ def test_kde1d():
 
 
 def test_kde_border_case():
-    xs = np.array([-100, -10, 0, 10, 100], dtype=np.float)
+    xs = np.array([-100, -10, 0, 10, 100], dtype=float)
     points = xs.reshape(-1, 1)
     kde = KernelDensityEstimator(points, Kernel(epanechnikov, scale=1.0))
     rho = kde.estimate()

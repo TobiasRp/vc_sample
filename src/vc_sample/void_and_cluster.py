@@ -24,7 +24,7 @@ class _SampleDensity:
     ):
         self.density_estimator = density_estimator
 
-        self.is_sample = np.zeros(num_points, dtype=np.bool)
+        self.is_sample = np.zeros(num_points, dtype=bool)
         self.is_sample[initial_sample_indices] = True
         self.rho = self.density_estimator.estimate(self.is_sample)
 
@@ -72,7 +72,7 @@ class VoidAndCluster:
         self.num_points = points.shape[0]
         self.points = points
 
-        self.is_sample = np.zeros(self.num_points, dtype=np.bool)
+        self.is_sample = np.zeros(self.num_points, dtype=bool)
 
         rank_type = np.int32
         self.rank = np.empty(self.num_points, dtype=rank_type)

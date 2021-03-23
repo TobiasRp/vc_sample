@@ -66,7 +66,7 @@ class KernelDensityEstimator:
         Returns:
             Array of densities
         """
-        rho = np.zeros(self.points.shape[0], dtype=np.float)
+        rho = np.zeros(self.points.shape[0], dtype=float)
 
         for i in range(self.points.shape[0]):
             if mask is None or mask[i]:
