@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def sample(in_samples: np.array, size: int):
+def sample(in_samples: np.array, size: int) -> np.array:
     """Returns stratified samples from X.
 
     :param in_samples: Array of observations (rows) and variables/dimensions/features (columns).

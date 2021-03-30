@@ -1,23 +1,41 @@
 import numpy as np
 from scipy.spatial import cKDTree
+from typing import Protocol
 
 
-def epanechnikov(x: float):
+class DensityEstimator(Protocol):
+    """ A DensityEstimator estimates the density for each data point.
+
+    Besides a complete estimation for each data point (with or without masking out some data points),
+    it enables efficient updates by adding/removing data points from an estimated density.
+    """
+
+    def estimate(self, mask: np.array = None) -> np.array:
+        ...
+
+    def add(self, rho_s: np.array, idx: int, mask: np.array = None) -> np.array:
+        ...
+
+    def sub(self, rho_s: np.array, idx: int, mask: np.array = None) -> np.array:
+        ...
+
+
+def epanechnikov(x: float) -> float:
     if 0 <= x < 1.0:
         return 0.75 * (1 - x ** 2)
     else:
         return 0.0
 
 
-def gaussian(x: float):
+def gaussian(x: float) -> float:
     return 1.0 / (2.0 * np.pi) * np.exp(-0.5 * x ** 2)
 
 
-def l2norm(vec):
+def l2norm(vec: np.array) -> float:
     return np.dot(vec, vec)
 
 
-def kernel_scale_factor(dimensionality: float, num_points: int, num_samples: int):
+def kernel_scale_factor(dimensionality: float, num_points: int, num_samples: int) -> float:
     return (num_points / float(num_samples)) ** (1.0 / dimensionality)
 
 
@@ -35,7 +53,7 @@ class Kernel:
         self.norm = norm
         self.scale = scale
 
-    def __call__(self, vec: int):
+    def __call__(self, vec: int) -> float:
         """Evaluates the kernel.
 
         Args:
@@ -46,7 +64,7 @@ class Kernel:
         x = self.norm(vec / self.scale)
         return self.kernel(x)
 
-    def support(self):
+    def support(self) -> float:
         return self.scale
 
 
@@ -58,7 +76,7 @@ class KernelDensityEstimator:
         self.points = points
         self.tree = cKDTree(points)
 
-    def estimate(self, mask: np.array = None):
+    def estimate(self, mask: np.array = None) -> np.array:
         """Estimates the density for all points.
 
         Args:
@@ -74,7 +92,7 @@ class KernelDensityEstimator:
 
         return rho
 
-    def add(self, rho_s: np.array, idx: int, mask: np.array = None):
+    def add(self, rho_s: np.array, idx: int, mask: np.array = None) -> np.array:
         """ For given densities, adds the density of a point.
 
         Args:

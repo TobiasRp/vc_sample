@@ -1,11 +1,13 @@
 import numpy as np
+from typing import Optional, Callable
+from vc_sample.density_estimation import DensityEstimator
 
 
-def _mask_rho_samples(rho, is_sample):
+def _mask_rho_samples(rho: float, is_sample: bool):
     return rho if is_sample else -np.inf
 
 
-def _mask_rho_points(rho, is_sample):
+def _mask_rho_points(rho: float, is_sample: bool):
     return rho if not is_sample else np.inf
 
 
@@ -20,7 +22,7 @@ class _SampleDensity:
     """
 
     def __init__(
-        self, num_points: int, initial_sample_indices: np.array, density_estimator
+        self, num_points: int, initial_sample_indices: np.array, density_estimator: DensityEstimator
     ):
         self.density_estimator = density_estimator
 
@@ -64,9 +66,9 @@ class VoidAndCluster:
     def __init__(
         self,
         points: np.array,
-        density_estimator,
+        density_estimator: DensityEstimator,
         num_initial_samples: int = 100,
-        log_fn=None,
+        log_fn: Optional[Callable[[str, np.array, np.array, int, int, int], None]] = None,
     ):
         self.num_initial_samples = num_initial_samples
         self.num_points = points.shape[0]
@@ -85,7 +87,7 @@ class VoidAndCluster:
 
         self.log_fn = log_fn
 
-    def _initial_sampling(self, num_samples) -> _SampleDensity:
+    def _initial_sampling(self, num_samples: int) -> _SampleDensity:
         """Performs initial (simple) random sampling."""
         indices = np.random.choice(
             range(0, self.is_sample.shape[0]), size=num_samples, replace=False
@@ -93,13 +95,13 @@ class VoidAndCluster:
         self.rank[indices] = range(0, num_samples)
         return _SampleDensity(self.num_points, indices, self.density_estimator)
 
-    def _swap_rank(self, largest_void, tightest_cluster):
+    def _swap_rank(self, largest_void: int, tightest_cluster: int) -> None:
         """Swaps the ranks of two indices."""
         r_lv = self.rank[largest_void]
         self.rank[largest_void] = self.rank[tightest_cluster]
         self.rank[tightest_cluster] = r_lv
 
-    def _initial_optimization(self, sample_density: _SampleDensity):
+    def _initial_optimization(self, sample_density: _SampleDensity) -> None:
         """Optimizes the samples by finding and exchanging the largest void and tightest cluster"""
         while True:
             largest_void = sample_density.add_largest_void()
@@ -119,7 +121,7 @@ class VoidAndCluster:
             if largest_void == tightest_cluster:
                 break
 
-    def _fill_voids(self, sample_density: _SampleDensity, num: int):
+    def _fill_voids(self, sample_density: _SampleDensity, num: int) -> None:
         """Adds ``num`` samples by iteratively finding and adding the largest void.
 
         Args:
@@ -141,7 +143,7 @@ class VoidAndCluster:
                     -1,
                 )
 
-    def sample(self, size: int):
+    def sample(self, size: int) -> np.array:
         """Returns ``size`` optimally stratified samples.
 
         Args:
@@ -160,10 +162,10 @@ class VoidAndCluster:
         self._fill_voids(sample_density, size - self.num_initial_samples)
         assert sample_density.num_samples() == size
 
-        ord = self.ordering(size)
-        return self.points[ord]
+        ordering = self.ordering(size)
+        return self.points[ordering]
 
-    def ordering(self, size: int):
+    def ordering(self, size: int) -> np.array:
         """
         After sampling, this returns a prefix of ``size`` sample indices.
 
