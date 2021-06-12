@@ -1,12 +1,14 @@
+from typing import Protocol
+
 import numpy as np
 from scipy.spatial import cKDTree
-from typing import Protocol
 
 
 class DensityEstimator(Protocol):
-    """ A DensityEstimator estimates the density for each data point.
+    """A DensityEstimator estimates the density for each data point.
 
-    Besides a complete estimation for each data point (with or without masking out some data points),
+    Besides a complete estimation for each data point
+    (with or without masking out some data points),
     it enables efficient updates by adding/removing data points from an estimated density.
     """
 
@@ -35,7 +37,9 @@ def l2norm(vec: np.array) -> float:
     return np.dot(vec, vec)
 
 
-def kernel_scale_factor(dimensionality: float, num_points: int, num_samples: int) -> float:
+def kernel_scale_factor(
+    dimensionality: float, num_points: int, num_samples: int
+) -> float:
     return (num_points / float(num_samples)) ** (1.0 / dimensionality)
 
 
@@ -80,7 +84,7 @@ class KernelDensityEstimator:
         """Estimates the density for all points.
 
         Args:
-            mask: Optional parameter to mask points to exclude during the density estimation.
+            mask: Optional parameter to mask points to exclude during density estimation.
         Returns:
             Array of densities
         """
@@ -93,7 +97,7 @@ class KernelDensityEstimator:
         return rho
 
     def add(self, rho_s: np.array, idx: int, mask: np.array = None) -> np.array:
-        """ For given densities, adds the density of a point.
+        """For given densities, adds the density of a point.
 
         Args:
             rho_s: Existing densities to update.
@@ -112,7 +116,7 @@ class KernelDensityEstimator:
                 rho_s[i] += self.kernel(np.dot(p - p_idx, p - p_idx))
 
     def sub(self, rho_s: np.array, idx: int, mask: np.array = None):
-        """ For given densities, subtracts the density of a point.
+        """For given densities, subtracts the density of a point.
 
         Args:
             rho_s: Existing densities to update.

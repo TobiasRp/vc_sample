@@ -1,5 +1,7 @@
+from typing import Callable, Optional
+
 import numpy as np
-from typing import Optional, Callable
+
 from vc_sample.density_estimation import DensityEstimator
 
 
@@ -22,7 +24,10 @@ class _SampleDensity:
     """
 
     def __init__(
-        self, num_points: int, initial_sample_indices: np.array, density_estimator: DensityEstimator
+        self,
+        num_points: int,
+        initial_sample_indices: np.array,
+        density_estimator: DensityEstimator,
     ):
         self.density_estimator = density_estimator
 
@@ -68,7 +73,9 @@ class VoidAndCluster:
         points: np.array,
         density_estimator: DensityEstimator,
         num_initial_samples: int = 100,
-        log_fn: Optional[Callable[[str, np.array, np.array, int, int, int], None]] = None,
+        log_fn: Optional[
+            Callable[[str, np.array, np.array, int, int, int], None]
+        ] = None,
     ):
         self.num_initial_samples = num_initial_samples
         self.num_points = points.shape[0]
