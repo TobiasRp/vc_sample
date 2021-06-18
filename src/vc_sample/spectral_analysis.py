@@ -20,7 +20,15 @@ def _fast_fourier_transform(image: np.array):
 
 
 def plot_fourier_transform(image: np.array, cmap: str = "viridis"):
-    """Plots the Fourier transform of a 2-dimensional binary image """
+    """Plots the Fourier transform of a 2-dimensional binary image
+
+    Args:
+        image: Binary image (e.g. as returned by ``discretize_as_image``)
+        cmap: Name of the colormap to use
+
+    Returns:
+        Figure of the created plot.
+    """
     fig = plt.figure()
     fig.add_subplot(
         1,
@@ -54,7 +62,14 @@ def plot_fourier_transform(image: np.array, cmap: str = "viridis"):
 
 
 def plot_power_distribution(image: np.array):
-    """Plot the distribution of power over radial frequency bands"""
+    """Plot the distribution of power over radial frequency bands
+
+    Args:
+        image: Binary image (e.g. as returned by ``discretize_as_image``)
+
+    Returns:
+        Figure of the created plot.
+    """
     dft = _fast_fourier_transform(image)
 
     fig_radial = plt.figure()
@@ -78,7 +93,14 @@ def plot_power_distribution(image: np.array):
 
 
 def plot_anisotropy(image: np.array):
-    """Plot the distribution of power over angular frequency ranges"""
+    """Plot the distribution of power over angular frequency ranges
+
+    Args:
+        image: Binary image (e.g. as returned by ``discretize_as_image``)
+
+    Returns:
+        Figure of the created plot.
+    """
     dft = _fast_fourier_transform(image)
     x, y = _create_grid(dft)
     radial_frequency = _radial_frequency(x, y)
