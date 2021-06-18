@@ -12,13 +12,22 @@ sampling strategy is based on kernel density estimation, the curse of dimensiona
 is to explore stratification in higher dimensions.
 
 
-Examples
+Example
 ===========
 
-The original dataset is shown on the left and 20% of samples on the right:
+This is a simple example of a two-dimensional point set from which we sample a subset
+using vc sample.
 
-.. image:: docs/sinc_full.png
-.. image:: docs/sinc_sampled.png
+.. figure:: docs/sinc_full.png
+   :align: center
+
+   The original dataset
+
+
+.. figure:: docs/sinc_sampled.png
+   :align: center
+
+   20% of samples
 
 Samples should be maximally pairwise distant, whilst still respecting
 the density of data points. I.e. dense regions in the original data are
