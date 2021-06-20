@@ -13,9 +13,11 @@ def test_sample_size(sample_size):
     points = np.stack([xs, ys]).T
 
     density_estimator = KernelDensityEstimator(points, Kernel(epanechnikov, scale=1.0))
-    vc = VoidAndCluster(points, density_estimator, num_initial_samples=20)
+    vc = VoidAndCluster(density_estimator, points.shape[0], num_initial_samples=20)
 
-    samples = vc.sample(size=sample_size)
+    sample_indices = vc.sample(size=sample_size)
+    samples = points[sample_indices]
+
     ordering = vc.ordering(size=sample_size)
 
     for o in ordering:

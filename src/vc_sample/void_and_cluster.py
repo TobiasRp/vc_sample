@@ -70,32 +70,42 @@ class VoidAndCluster:
 
     def __init__(
         self,
-        points: np.array,
         density_estimator: DensityEstimator,
+        num_points: int,
         num_initial_samples: int = 100,
         log_fn: Optional[
             Callable[[str, np.array, np.array, int, int, int], None]
         ] = None,
     ):
+        """
+        Args:
+            density_estimator: An object that implements the ``DensityEstimator`` interface
+            num_points: Number of data points in the dataset. The actual data points are not needed.
+            num_initial_samples: Number of initial samples to take for the optimization.
+            log_fn: Optional callable object that will be called repeatedly
+                    during the optimization (for debugging purposes).
+        """
+        self.density_estimator = density_estimator
+        self.num_points = num_points
         self.num_initial_samples = num_initial_samples
-        self.num_points = points.shape[0]
-        self.points = points
 
         self.is_sample = np.zeros(self.num_points, dtype=bool)
 
         rank_type = np.int32
         self.rank = np.empty(self.num_points, dtype=rank_type)
-
         self.INF_RANK = np.iinfo(rank_type).max
         self.rank.fill(self.INF_RANK)
-
-        self.density_estimator = density_estimator
-        self.inv_rho_p = 1.0 / density_estimator.estimate()
-
         self.log_fn = log_fn
 
     def _initial_sampling(self, num_samples: int) -> _SampleDensity:
-        """Performs initial (simple) random sampling."""
+        """Performs initial (simple) random sampling.
+
+        Args:
+            num_samples: Number of initial random samples to take.
+
+        Returns:
+            The density of randomly taken samples.
+        """
         indices = np.random.choice(
             range(0, self.is_sample.shape[0]), size=num_samples, replace=False
         )
@@ -103,13 +113,22 @@ class VoidAndCluster:
         return _SampleDensity(self.num_points, indices, self.density_estimator)
 
     def _swap_rank(self, largest_void: int, tightest_cluster: int) -> None:
-        """Swaps the ranks of two indices."""
+        """Swaps the ranks of two indices, i.e. the largest void and tightest cluster.
+
+        Args:
+            largest_void: Index of the largest void
+            tightest_cluster: Index of the tightest cluster
+        """
         r_lv = self.rank[largest_void]
         self.rank[largest_void] = self.rank[tightest_cluster]
         self.rank[tightest_cluster] = r_lv
 
     def _initial_optimization(self, sample_density: _SampleDensity) -> None:
-        """Optimizes the samples by finding and exchanging the largest void and tightest cluster"""
+        """Optimizes the samples by finding and exchanging the largest void and tightest cluster.
+
+        Args:
+            sample_density: Density of samples that will be updated.
+        """
         while True:
             largest_void = sample_density.add_largest_void()
             tightest_cluster = sample_density.remove_tightest_cluster()
@@ -151,12 +170,13 @@ class VoidAndCluster:
                 )
 
     def sample(self, size: int) -> np.array:
-        """Returns ``size`` optimally stratified samples.
+        """Returns ``size`` optimally stratified indices to sampled data points.
 
         Args:
             size: Number of points to sample.
+
         Returns:
-            Sampled points
+            Indices of sampled points.
         """
         num_initial_samples = (
             self.num_initial_samples if self.num_initial_samples < size else size
@@ -169,8 +189,7 @@ class VoidAndCluster:
         self._fill_voids(sample_density, size - self.num_initial_samples)
         assert sample_density.num_samples() == size
 
-        ordering = self.ordering(size)
-        return self.points[ordering]
+        return self.ordering(size)
 
     def ordering(self, size: int) -> np.array:
         """
@@ -178,6 +197,7 @@ class VoidAndCluster:
 
         Args:
             size: Size of the prefix. Cannot be greater than what has previously been sampled.
+
         Returns:
             Indices of the first ``size`` samples.
         """
