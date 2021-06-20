@@ -16,18 +16,18 @@ Example
 ===========
 
 This is a simple example of a two-dimensional point set from which we sample a subset
-using vc sample.
+using vc sample:
 
-.. figure:: docs/sinc_full.png
+.. figure:: docs/input.png
    :align: center
 
    The original dataset
 
 
-.. figure:: docs/sinc_sampled.png
+.. figure:: docs/output.png
    :align: center
 
-   20% of samples
+   10% of samples
 
 Samples should be maximally pairwise distant, whilst still respecting
 the density of data points. I.e. dense regions in the original data are
