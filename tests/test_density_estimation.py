@@ -41,7 +41,9 @@ def test_kde1d():
     xs = np.linspace(-1.0, -1.0, 100)
     points = xs.reshape(-1, 1)
 
-    kde = KernelDensityEstimator(points, Kernel(epanechnikov, scale=1.0))
+    kde = KernelDensityEstimator(
+        points, Kernel(epanechnikov, scale=1.0), divide_data_density=False
+    )
 
     rho = kde.estimate(mask=np.zeros_like(points, dtype=bool))
     assert not rho.any()
@@ -58,7 +60,9 @@ def test_kde1d():
 def test_kde_border_case():
     xs = np.array([-100, -10, 0, 10, 100], dtype=float)
     points = xs.reshape(-1, 1)
-    kde = KernelDensityEstimator(points, Kernel(epanechnikov, scale=1.0))
+    kde = KernelDensityEstimator(
+        points, Kernel(epanechnikov, scale=1.0), divide_data_density=False
+    )
     rho = kde.estimate()
     for i, _ in enumerate(xs):
         assert rho[i] == epanechnikov(0.0)
@@ -70,7 +74,20 @@ def test_kde2d():
     x, y = np.meshgrid(x_, y_)
     points = np.stack([x.flatten(), y.flatten()]).T
 
-    kde = KernelDensityEstimator(points, Kernel(epanechnikov, scale=0.1))
+    kde = KernelDensityEstimator(
+        points, Kernel(epanechnikov, scale=0.1), divide_data_density=False
+    )
     rho = kde.estimate().reshape(10, 10)
 
     assert np.abs(rho[6, 6] - rho[4, 4]) < 1e-3
+
+
+def test_divide_data_density():
+    xs = np.linspace(-1.0, -1.0, 100)
+    points = xs.reshape(-1, 1)
+    kde = KernelDensityEstimator(
+        points, Kernel(epanechnikov, scale=0.1), divide_data_density=True
+    )
+
+    estimate = kde.estimate()
+    assert ((estimate - 1.0) < 0.001).all()

@@ -29,6 +29,12 @@ class _SampleDensity:
         initial_sample_indices: np.array,
         density_estimator: DensityEstimator,
     ):
+        """
+        Args:
+            num_points: Number of data points
+            initial_sample_indices: Indices to the initial samples.
+            density_estimator: The density estimator object.
+        """
         self.density_estimator = density_estimator
 
         self.is_sample = np.zeros(num_points, dtype=bool)
