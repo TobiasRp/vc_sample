@@ -2,28 +2,15 @@ import pytest
 
 import numpy as np
 
-from vc_sample.density_estimation import Kernel, KernelDensityEstimator, epanechnikov
-
-
-def test_epanechnikov_kernel():
-    assert epanechnikov(0.5) == 0.5625
-    assert epanechnikov(-1.0) == 0.0
-    assert epanechnikov(1.0) == 0.0
-
-
-def test_kernel():
-    scale = 3.0
-    k = Kernel(epanechnikov, scale=scale)
-    assert k.support() == scale
-    assert k(np.array([10, 9])) == 0.0
-    assert k(1.5) == epanechnikov(0.5 ** 2)
+from vc_sample.density_estimation import KernelDensityEstimator
+from vc_sample.kernels import GaussianKernel
 
 
 @pytest.fixture
 def kde1d():
     xs = np.linspace(-1.0, -1.0, 100)
     points = xs.reshape(-1, 1)
-    return KernelDensityEstimator(points, kernel=Kernel(epanechnikov, scale=0.5))
+    return KernelDensityEstimator(points, kernel=GaussianKernel(sigma=0.5))
 
 
 def test_add_sub(kde1d):
@@ -42,7 +29,7 @@ def test_kde1d():
     points = xs.reshape(-1, 1)
 
     kde = KernelDensityEstimator(
-        points, Kernel(epanechnikov, scale=1.0), divide_data_density=False
+        points, GaussianKernel(sigma=1.0), divide_data_density=False
     )
 
     rho = kde.estimate(mask=np.zeros_like(points, dtype=bool))
@@ -60,12 +47,11 @@ def test_kde1d():
 def test_kde_border_case():
     xs = np.array([-100, -10, 0, 10, 100], dtype=float)
     points = xs.reshape(-1, 1)
-    kde = KernelDensityEstimator(
-        points, Kernel(epanechnikov, scale=1.0), divide_data_density=False
-    )
+    gauss = GaussianKernel(sigma=1.0)
+    kde = KernelDensityEstimator(points, gauss, divide_data_density=False)
     rho = kde.estimate()
     for i, _ in enumerate(xs):
-        assert rho[i] == epanechnikov(0.0)
+        assert rho[i] == gauss(0.0)
 
 
 def test_kde2d():
@@ -75,7 +61,7 @@ def test_kde2d():
     points = np.stack([x.flatten(), y.flatten()]).T
 
     kde = KernelDensityEstimator(
-        points, Kernel(epanechnikov, scale=0.1), divide_data_density=False
+        points, GaussianKernel(sigma=0.1), divide_data_density=False
     )
     rho = kde.estimate().reshape(10, 10)
 
@@ -86,7 +72,7 @@ def test_divide_data_density():
     xs = np.linspace(-1.0, -1.0, 100)
     points = xs.reshape(-1, 1)
     kde = KernelDensityEstimator(
-        points, Kernel(epanechnikov, scale=0.1), divide_data_density=True
+        points, GaussianKernel(sigma=0.1), divide_data_density=True
     )
 
     estimate = kde.estimate()

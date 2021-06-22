@@ -3,6 +3,8 @@ from typing import Protocol
 import numpy as np
 from scipy.spatial import cKDTree
 
+from vc_sample.kernels import Kernel
+
 
 class DensityEstimator(Protocol):
     """A DensityEstimator estimates the density for each data point.
@@ -20,56 +22,6 @@ class DensityEstimator(Protocol):
 
     def sub(self, rho_s: np.array, idx: int, mask: np.array = None) -> np.array:
         ...
-
-
-def epanechnikov(x: float) -> float:
-    if 0 <= x < 1.0:
-        return 0.75 * (1 - x ** 2)
-    else:
-        return 0.0
-
-
-def gaussian(x: float) -> float:
-    return 1.0 / (2.0 * np.pi) * np.exp(-0.5 * x ** 2)
-
-
-def l2norm(vec: np.array) -> float:
-    return np.dot(vec, vec)
-
-
-def kernel_scale_factor(
-    dimensionality: float, num_points: int, num_samples: int
-) -> float:
-    return (num_points / float(num_samples)) ** (1.0 / dimensionality)
-
-
-class Kernel:
-    """A kernel function assigns a weight based on distance between two points."""
-
-    def __init__(self, kernel_func, scale: float, norm=l2norm):
-        """Create a new kernel with the given scaling factor.
-
-        Args:
-            kernel_func: Kernel function with a support of 1
-            scale: Global scaling factor
-        """
-        self.kernel = kernel_func
-        self.norm = norm
-        self.scale = scale
-
-    def __call__(self, vec: int) -> float:
-        """Evaluates the kernel.
-
-        Args:
-            vec: Distance vector for which to compute a weight.
-        Returns:
-            Scalar weight
-        """
-        x = self.norm(vec / self.scale)
-        return self.kernel(x)
-
-    def support(self) -> float:
-        return self.scale
 
 
 class KernelDensityEstimator:

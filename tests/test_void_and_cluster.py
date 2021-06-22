@@ -2,7 +2,8 @@ import pytest
 
 import numpy as np
 
-from vc_sample.density_estimation import Kernel, KernelDensityEstimator, epanechnikov
+from vc_sample.density_estimation import KernelDensityEstimator
+from vc_sample.kernels import GaussianKernel
 from vc_sample.void_and_cluster import VoidAndCluster
 
 
@@ -12,7 +13,7 @@ def test_sample_size(sample_size):
     ys = np.random.uniform(-1.0, 1.0, 100)
     points = np.stack([xs, ys]).T
 
-    density_estimator = KernelDensityEstimator(points, Kernel(epanechnikov, scale=1.0))
+    density_estimator = KernelDensityEstimator(points, GaussianKernel(sigma=1.0))
     vc = VoidAndCluster(density_estimator, points.shape[0], num_initial_samples=20)
 
     sample_indices = vc.sample(size=sample_size)
