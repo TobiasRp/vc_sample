@@ -1,6 +1,7 @@
 from typing import Protocol
 
 import numpy as np
+import umap
 from scipy.spatial import cKDTree
 
 from vc_sample.kernels import Kernel
@@ -17,10 +18,10 @@ class DensityEstimator(Protocol):
     def estimate(self, mask: np.array = None) -> np.array:
         ...
 
-    def add(self, rho_s: np.array, idx: int, mask: np.array = None) -> np.array:
+    def add(self, rho_s: np.array, idx: int) -> np.array:
         ...
 
-    def sub(self, rho_s: np.array, idx: int, mask: np.array = None) -> np.array:
+    def sub(self, rho_s: np.array, idx: int) -> np.array:
         ...
 
 
@@ -72,7 +73,7 @@ class KernelDensityEstimator:
         Returns:
             Array of densities
         """
-        rho = np.zeros(self.points.shape[0], dtype=float)
+        rho = np.zeros(self.points.shape[0], dtype=np.float64)
 
         for i in range(self.points.shape[0]):
             if mask is None or mask[i]:
@@ -80,38 +81,80 @@ class KernelDensityEstimator:
 
         return rho
 
-    def add(self, rho_s: np.array, idx: int, mask: np.array = None) -> np.array:
+    def add(self, rho_s: np.array, idx: int) -> np.array:
         """For given densities, adds the density of a point.
 
         Args:
             rho_s: Existing densities to update.
             idx: Index of the point.
-            mask: Optional mask to exclude points during the density estimation.
         """
         p_idx = self.points[idx]
 
         neighbors = self.tree.query_ball_point(p_idx, self.kernel.support(), workers=-1)
         for i in neighbors:
             p = self.points[i]
-            if mask is None or mask[i]:
-                rho_s[i] += self.kernel(
-                    np.dot(p - p_idx, p - p_idx)
-                ) * self._weighting_factor(idx)
+            rho_s[i] += self.kernel(
+                np.dot(p - p_idx, p - p_idx)
+            ) * self._weighting_factor(idx)
 
-    def sub(self, rho_s: np.array, idx: int, mask: np.array = None):
+    def sub(self, rho_s: np.array, idx: int):
         """For given densities, subtracts the density of a point.
 
         Args:
             rho_s: Existing densities to update.
             idx: Index of the point.
-            mask: Optional mask to exclude points during the density estimation.
         """
         p_idx = self.points[idx]
 
         neighbors = self.tree.query_ball_point(p_idx, self.kernel.support(), workers=-1)
         for i in neighbors:
             p = self.points[i]
+            rho_s[i] -= self.kernel(
+                np.dot(p - p_idx, p - p_idx)
+            ) * self._weighting_factor(idx)
+
+
+class UMAPDensityEstimator:
+    """Estimates density along an embedded manifold in a higher-dimensional space,
+    which is represented as a weighted graph. Such a graph is constructed based
+    on the UMAP dimensionality reduction technique.
+    """
+
+    def __init__(
+        self,
+        X: np.array,
+        n_neighbors: int,
+        metric: str = "euclidean",
+        random_state=0,
+        **kwargs
+    ):
+        """
+        Args:
+            X: Data points in a high-dimensional space
+            n_neighbors: Number of neighbors
+            metric: The distance metric.
+            kwargs: Additional parameters for UMAP ``fuzzy_simplicial_set``.
+        """
+        self.num = X.shape[0]
+        self.graph, _, _ = umap.umap_.fuzzy_simplicial_set(
+            X,
+            n_neighbors=n_neighbors,
+            metric=metric,
+            random_state=random_state,
+            **kwargs
+        )
+
+    def estimate(self, mask: np.array = None) -> np.array:
+        rho = np.zeros(self.num, dtype=np.float64)
+        for i in range(self.num):
             if mask is None or mask[i]:
-                rho_s[i] -= self.kernel(
-                    np.dot(p - p_idx, p - p_idx)
-                ) * self._weighting_factor(idx)
+                self.add(rho, i)
+        return rho
+
+    def add(self, rho_s: np.array, idx: int) -> np.array:
+        for i in self.graph[idx, :].nonzero():
+            rho_s[i] += self.graph[idx, i]
+
+    def sub(self, rho_s: np.array, idx: int) -> np.array:
+        for i in self.graph[idx, :].nonzero():
+            rho_s[i] -= self.graph[idx, i]

@@ -1,1 +1,6 @@
+jupyterlab
+matplotlib
+pandas
+scikit-image
 scikit-learn
+umap-learn

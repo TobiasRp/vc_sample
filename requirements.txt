@@ -16,12 +16,10 @@
 # scipy==1.0
 #
 
-jupyterlab
-matplotlib
 numpy
-pandas
 pre-commit
 pytest
 pytest-cov
 scipy
 tox
+umap-learn
