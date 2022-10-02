@@ -71,14 +71,18 @@ git clone git@github.com:TobiasRp/vc_sample.git && cd vc_sample
 ```
 
 Optionally, create and initialize conda or another virtual python env. This is not included here. Then,
-install pyscaffold and install `vc_sample` as an editable package including its dependencies.
+install pyscaffold.
 
 ```
 pip install pyscaffold
+```
+
+Lastly, install `vc_sample` as an editable package including its dependencies:
+```
 pip install -e .
 ```
 
-Now, `vc_sample` can be imported as any other python package.
+Now, `vc_sample` can be imported and used as a python package.
 
 
 Usage
