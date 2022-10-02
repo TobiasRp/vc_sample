@@ -33,6 +33,28 @@ Samples should be maximally pairwise distant, whilst still respecting
 the density of data points. I.e. dense regions in the original data are
 sampled more often.
 
+Sampling in higher dimensions is problematic, due to the curse of dimensionality. However, in a lot of cases, our data is lower dimensional,
+but is _embedded_ in a higher dimensional space.
+
+For example, this S-curve is a 2D manifold (think of a deformed rectangle) that lies in a 3D space:
+
+.. figure:: docs/full_s-curve.png
+   :align: center
+
+   2000 points on a 2D S-curve embedded in 3D.
+
+To sample such a dataset, we _only_ have to change the density estimation. By specifying the density on the S-curve and not by taking
+distances in 3D, the void and cluster algorithm be directly used without changes.
+
+Here, we use the UMAP dimensionality reduction technique to define a density estimate and then sample correspondingly:
+
+.. figure:: docs/sampled_s-curve.png
+   :align: center
+
+   200 stratified samples _on the S-curve_
+
+
+
 
 Installation
 ===========
