@@ -29,8 +29,8 @@ class Kernel(Protocol):
         """Returns the support of the kernel, i.e.
         after which it will return zero.
 
-        Note that some kernels have infinite support and might return
-        something approximate instead.
+        Note that some kernels have infinite support, but should still return
+        finite bounds due to computational efficiency.
         """
         ...
 

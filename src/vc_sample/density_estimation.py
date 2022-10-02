@@ -39,8 +39,8 @@ class KernelDensityEstimator:
         Creates a new kernel density estimator.
 
         Args:
-            points: Data points
-            kernel: The kernel function to use for density estimation
+            points: Data points.
+            kernel: The kernel function to use for density estimation.
             divide_data_density: If true, the density of data points will be divided out.
                                  Sampling from this density will thus keep the density
                                  of the original data points, instead of always sampling
@@ -81,8 +81,8 @@ class KernelDensityEstimator:
 
         return rho
 
-    def add(self, rho_s: np.array, idx: int) -> np.array:
-        """For given densities, adds the density of a point.
+    def add(self, rho_s: np.array, idx: int):
+        """For given densities, adds the density of the point indexed by ``idx``.
 
         Args:
             rho_s: Existing densities to update.
@@ -151,10 +151,10 @@ class UMAPDensityEstimator:
                 self.add(rho, i)
         return rho
 
-    def add(self, rho_s: np.array, idx: int) -> np.array:
+    def add(self, rho_s: np.array, idx: int):
         for i in self.graph[idx, :].nonzero():
             rho_s[i] += self.graph[idx, i]
 
-    def sub(self, rho_s: np.array, idx: int) -> np.array:
+    def sub(self, rho_s: np.array, idx: int):
         for i in self.graph[idx, :].nonzero():
             rho_s[i] -= self.graph[idx, i]

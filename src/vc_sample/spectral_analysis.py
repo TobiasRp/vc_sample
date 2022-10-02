@@ -20,11 +20,11 @@ def _fast_fourier_transform(image: np.array):
 
 
 def plot_fourier_transform(image: np.array, cmap: str = "viridis"):
-    """Plots the Fourier transform of a 2-dimensional binary image
+    """Plots the Fourier transform of a 2-dimensional binary image.
 
     Args:
-        image: Binary image (e.g. as returned by ``discretize_as_image``)
-        cmap: Name of the colormap to use
+        image: Binary image (e.g. as returned by ``discretize_as_image``).
+        cmap: Name of the colormap to use.
 
     Returns:
         Figure of the created plot.
@@ -62,10 +62,10 @@ def plot_fourier_transform(image: np.array, cmap: str = "viridis"):
 
 
 def plot_power_distribution(image: np.array):
-    """Plot the distribution of power over radial frequency bands
+    """Plot the distribution of power over radial frequency bands.
 
     Args:
-        image: Binary image (e.g. as returned by ``discretize_as_image``)
+        image: Binary image (e.g. as returned by ``discretize_as_image``).
 
     Returns:
         Figure of the created plot.
@@ -93,10 +93,10 @@ def plot_power_distribution(image: np.array):
 
 
 def plot_anisotropy(image: np.array):
-    """Plot the distribution of power over angular frequency ranges
+    """Plot the distribution of power over angular frequency ranges.
 
     Args:
-        image: Binary image (e.g. as returned by ``discretize_as_image``)
+        image: Binary image (e.g. as returned by ``discretize_as_image``).
 
     Returns:
         Figure of the created plot.
@@ -155,8 +155,8 @@ def discretize_as_image(xs: np.array, ys: np.array, resolution: Tuple[int, int])
         resolution: Image resolution
 
     Returns:
-        An image of size ``resolution`` with a value of 1.0 if it "contains" a points
-        and zero otherwise
+        An image of size ``resolution`` with a value of 1.0 if it "contains" a point
+        and zero otherwise.
     """
     x_extrema = (np.min(xs), np.max(xs))
     y_extrema = (np.min(ys), np.max(ys))

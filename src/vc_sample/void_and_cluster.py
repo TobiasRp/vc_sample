@@ -31,7 +31,7 @@ class _SampleDensity:
     ):
         """
         Args:
-            num_points: Number of data points
+            num_points: Number of data points.
             initial_sample_indices: Indices to the initial samples.
             density_estimator: The density estimator object.
         """
@@ -42,7 +42,7 @@ class _SampleDensity:
         self.rho = self.density_estimator.estimate(self.is_sample)
 
     def add_largest_void(self) -> int:
-        """Find and add largest void that is NOT a sample"""
+        """Find and add the index to largest void that is NOT a sample"""
         largest_void_idx = np.argmin(mask_rho_points_func(self.rho, self.is_sample))
 
         self.density_estimator.add(self.rho, largest_void_idx)
@@ -53,7 +53,7 @@ class _SampleDensity:
         return largest_void_idx
 
     def remove_tightest_cluster(self) -> int:
-        """Find and remove tightest cluster that IS a sample"""
+        """Find and remove the index to tightest cluster that IS a sample"""
         tightest_clust_idx = np.argmax(mask_rho_samples_func(self.rho, self.is_sample))
 
         self.density_estimator.sub(self.rho, tightest_clust_idx)
@@ -85,7 +85,7 @@ class VoidAndCluster:
     ):
         """
         Args:
-            density_estimator: An object that implements the ``DensityEstimator`` interface
+            density_estimator: An object that implements the ``DensityEstimator`` interface.
             num_points: Number of data points in the dataset. The actual data points are not needed.
             num_initial_samples: Number of initial samples to take for the optimization.
             log_fn: Optional callable object that will be called repeatedly
@@ -122,8 +122,8 @@ class VoidAndCluster:
         """Swaps the ranks of two indices, i.e. the largest void and tightest cluster.
 
         Args:
-            largest_void: Index of the largest void
-            tightest_cluster: Index of the tightest cluster
+            largest_void: Index of the largest void.
+            tightest_cluster: Index of the tightest cluster.
         """
         r_lv = self.rank[largest_void]
         self.rank[largest_void] = self.rank[tightest_cluster]
@@ -157,8 +157,8 @@ class VoidAndCluster:
         """Adds ``num`` samples by iteratively finding and adding the largest void.
 
         Args:
-            sample_density: Density of samples to find the largest void(s)
-            num: Number of samples to add
+            sample_density: Density of samples for which to find the largest void(s).
+            num: Number of samples to add.
         """
         for i in range(num):
             largest_void = sample_density.add_largest_void()
