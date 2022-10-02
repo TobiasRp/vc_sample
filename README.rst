@@ -65,19 +65,16 @@ This project is still under development. For setting it up for development, `pys
 to simplify python packaging.
 
 Clone the repo:
-``
-git clone git@github.com:TobiasRp/vc_sample.git
-cd vc_sample
-``
+.. code:: bash
+   git clone git@github.com:TobiasRp/vc_sample.git
+   cd vc_sample
 
 Optionally, create and initialize conda or another virtual python env. This is not included here. Then,
 install pyscaffold and install `vc_sample` as an editable package including its dependencies.
 
-``
-pip install pyscaffold
-
-pip install -e .
-``
+.. code:: bash
+   pip install pyscaffold
+   pip install -e .
 
 Now, `vc_sample` can be imported as any other python package.
 
