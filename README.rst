@@ -42,10 +42,8 @@ For example, this S-curve is a 2D manifold (think of a deformed rectangle) that 
 .. figure:: docs/full_s-curve.png
    :align: center
 
-   2000 points on a 2D S-curve embedded in 3D.
-
 To sample such a dataset, we *only* have to change the density estimation. By specifying the density on the S-curve
-and not by taking distances in 3D, the void and cluster algorithm can be directly used without changes. Note that this
+and by not computing distances in 3D, the void and cluster algorithm can be directly applied without changes. Note that this
 reduces the dimensionality of the density estimation.
 
 
@@ -55,7 +53,7 @@ based on the UMAP dimensionality reduction technique and then sample accordingly
 .. figure:: docs/sampled_s-curve.png
    :align: center
 
-   200 stratified samples *on the S-curve*
+   10% of stratified samples *on the S-curve*
 
 
 
@@ -63,7 +61,7 @@ based on the UMAP dimensionality reduction technique and then sample accordingly
 Installation
 ===========
 
-This project is still under development. For setting it up for development, `pyscaffold <https://pyscaffold.org/>` is used,
+This project is still under development. For setting it up for development, `pyscaffold <https://pyscaffold.org/>`_ is used,
 to simplify python packaging.
 
 Clone the repo:
