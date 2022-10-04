@@ -78,6 +78,7 @@ pip install pyscaffold
 ```
 
 Lastly, install `vc_sample` as an editable package including its dependencies:
+
 ```
 pip install -e .
 ```

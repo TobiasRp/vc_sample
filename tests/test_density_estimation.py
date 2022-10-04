@@ -2,8 +2,10 @@ import pytest
 
 import numpy as np
 
-from vc_sample.density_estimation import KernelDensityEstimator
+from vc_sample.density_estimation import KernelDensityEstimator, UMAPDensityEstimator
 from vc_sample.kernels import GaussianKernel
+
+from sklearn.datasets import make_circles
 
 
 @pytest.fixture
@@ -77,3 +79,23 @@ def test_divide_data_density():
 
     estimate = kde.estimate()
     assert ((estimate - 1.0) < 0.001).all()
+
+
+def test_umap_density_estimator():
+    circles, _ = make_circles(n_samples=100, random_state=42)
+    estimator = UMAPDensityEstimator(X=circles, n_neighbors=6)
+    density = estimator.estimate()
+    assert (0.0 < density).all()
+
+    density_copy = np.copy(density)
+
+    indices = [0, 10, 42, 99]
+    for idx in indices:
+        estimator.add(density, idx)
+
+    assert (density >= density_copy).all()
+
+    for idx in indices:
+        estimator.sub(density, idx)
+
+    assert np.isclose(density, density_copy).all()

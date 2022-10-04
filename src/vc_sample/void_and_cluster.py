@@ -113,7 +113,7 @@ class VoidAndCluster:
             The density of randomly taken samples.
         """
         indices = np.random.choice(
-            range(0, self.is_sample.shape[0]), size=num_samples, replace=False
+            range(0, self.is_sample.shape[0]), size=num_samples, replace=False,
         )
         self.rank[indices] = range(0, num_samples)
         return _SampleDensity(self.num_points, indices, self.density_estimator)

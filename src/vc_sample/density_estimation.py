@@ -131,9 +131,9 @@ class UMAPDensityEstimator:
         """
         Args:
             X: Data points in a high-dimensional space
-            n_neighbors: Number of neighbors
-            metric: The distance metric.
-            kwargs: Additional parameters for UMAP ``fuzzy_simplicial_set``.
+            n_neighbors: Number of neighbors to approximate geodesic distance, cf. UMAP.
+            metric: The distance metric function or name (string), cf. UMAP.
+            kwargs: Additional parameters for UMAP are documented in ``fuzzy_simplicial_set``.
         """
         self.num = X.shape[0]
         self.graph, _, _ = umap.umap_.fuzzy_simplicial_set(
